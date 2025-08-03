@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Caesar Cipher</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    textarea, input { width: 100%; margin-top: 5px; margin-bottom: 15px; padding: 8px; }
+    button { padding: 10px 20px; margin: 5px 5px 15px 0; }
+    .output { background: #fff; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap; }
+    .section { margin-bottom: 30px; }
+    code { background: #eee; padding: 2px 4px; border-radius: 4px; }
+    #visualSection {
+      display: none; /* Disembunyikan di awal */
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔐 Caesar Cipher</h1>
+
+<div class="section">
+  <label for="plaintext">Teks:</label>
+  <textarea id="plaintext" rows="4">HaloDunia</textarea>
+
+  <label for="key">Kunci (bilangan bulat):</label>
+  <input type="number" id="key" value="3">
+
+  <button onclick="encryptCaesar()">Enkripsi</button>
+  <button onclick="decryptCaesar()">Dekripsi</button>
+  <button id="toggleButton" onclick="toggleVisualization()">🔍 Tampilkan Visualisasi</button>
+</div>
+
+<div class="section">
+  <h3>📤 Hasil:</h3>
+  <div class="output" id="ciphertext"></div>
+</div>
+
+<div class="section" id="visualSection">
+  <h3>🔍 Visualisasi Proses:</h3>
+  <div class="output" id="visualization"></div>
+</div>
+
+<script>
+function caesarShift(ch, key, encrypt = true) {
+  const code = ch.charCodeAt(0);
+  const isUpper = ch >= 'A' && ch <= 'Z';
+  const isLower = ch >= 'a' && ch <= 'z';
+
+  if (!isUpper && !isLower) return { ch, info: `${ch} (non-huruf)` };
+
+  const base = isUpper ? 65 : 97;
+  const index = code - base;
+  const shift = encrypt ? key : -key;
+  const shifted = (index + shift + 26) % 26;
+  const result = String.fromCharCode(base + shifted);
+
+  return {
+    ch: result,
+    info: `${ch} → ${index} ${encrypt ? '+' : '-'} ${Math.abs(key)} = ${shifted} → ${result}`
+  };
+}
+
+function processCaesar(encrypt = true) {
+  const text = document.getElementById("plaintext").value;
+  const key = parseInt(document.getElementById("key").value) || 0;
+  const results = [];
+  const visuals = [];
+
+  for (let ch of text) {
+    const { ch: outCh, info } = caesarShift(ch, key, encrypt);
+    results.push(outCh);
+    visuals.push(info);
+  }
+
+  document.getElementById("ciphertext").textContent = results.join("");
+  document.getElementById("visualization").textContent = visuals.join("\n");
+}
+
+function encryptCaesar() {
+  processCaesar(true);
+}
+
+function decryptCaesar() {
+  processCaesar(false);
+}
+
+function toggleVisualization() {
+  const visual = document.getElementById("visualSection");
+  const toggleBtn = document.getElementById("toggleButton");
+  const isHidden = getComputedStyle(visual).display === "none";
+
+  visual.style.display = isHidden ? "block" : "none";
+  toggleBtn.textContent = isHidden ? "❌ Sembunyikan Visualisasi" : "🔍 Tampilkan Visualisasi";
+}
+</script>
+
+</body>
+</html>
