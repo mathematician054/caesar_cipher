@@ -1,100 +1,131 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Caesar Cipher</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-    textarea, input { width: 100%; margin-top: 5px; margin-bottom: 15px; padding: 8px; }
-    button { padding: 10px 20px; margin: 5px 5px 15px 0; }
-    .output { background: #fff; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap; }
-    .section { margin-bottom: 30px; }
-    code { background: #eee; padding: 2px 4px; border-radius: 4px; }
-    #visualSection {
-      display: none; /* Disembunyikan di awal */
-      transition: all 0.3s ease;
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    .buttons {
+      display: flex;
+      gap: 4%;
+      margin-top: 5px;
+    }
+    .buttons button {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .toggle-btn {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+    }
+    .output {
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .step-line {
+      background: #fff;
+      padding: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 4px;
+      font-family: monospace;
+    }
+    #langkah-container {
+      display: none;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
+  <h1>🔐 Simulasi Caesar Cipher</h1>
 
-<h1>🔐 Caesar Cipher</h1>
+  <label for="text">Teks:</label>
+  <textarea id="text" rows="4">Halo Dunia!</textarea>
 
-<div class="section">
-  <label for="plaintext">Teks:</label>
-  <textarea id="plaintext" rows="4">HaloDunia</textarea>
+  <label for="shift">Kunci Pergeseran (0-25):</label>
+  <input type="number" id="shift" value="3" min="0" max="25" />
 
-  <label for="key">Kunci (bilangan bulat):</label>
-  <input type="number" id="key" value="3">
+  <div class="buttons">
+    <button onclick="prosesCaesar(true)">🔐 Enkripsi</button>
+    <button onclick="prosesCaesar(false)">🔓 Dekripsi</button>
+  </div>
 
-  <button onclick="encryptCaesar()">Enkripsi</button>
-  <button onclick="decryptCaesar()">Dekripsi</button>
-  <button id="toggleButton" onclick="toggleVisualization()">🔍 Tampilkan Visualisasi</button>
-</div>
+  <button class="toggle-btn" id="toggleButton" onclick="toggleLangkah()">🔍 Tampilkan Visualisasi</button>
 
-<div class="section">
-  <h3>📤 Hasil:</h3>
-  <div class="output" id="ciphertext"></div>
-</div>
+  <h3>Hasil:</h3>
+  <div class="output" id="hasil"></div>
 
-<div class="section" id="visualSection">
-  <h3>🔍 Visualisasi Proses:</h3>
-  <div class="output" id="visualization"></div>
-</div>
+  <div id="langkah-container">
+    <h3>Visualisasi:</h3>
+    <div id="langkah"></div>
+  </div>
 
-<script>
-function caesarShift(ch, key, encrypt = true) {
-  const code = ch.charCodeAt(0);
-  const isUpper = ch >= 'A' && ch <= 'Z';
-  const isLower = ch >= 'a' && ch <= 'z';
+  <script>
+    function isLetter(c) {
+      return /^[a-zA-Z]$/.test(c);
+    }
 
-  if (!isUpper && !isLower) return { ch, info: `${ch} (non-huruf)` };
+    function prosesCaesar(encrypt = true) {
+      const text = document.getElementById("text").value;
+      const shift = parseInt(document.getElementById("shift").value) % 26;
+      const hasilDiv = document.getElementById("hasil");
+      const langkahDiv = document.getElementById("langkah");
 
-  const base = isUpper ? 65 : 97;
-  const index = code - base;
-  const shift = encrypt ? key : -key;
-  const shifted = (index + shift + 26) % 26;
-  const result = String.fromCharCode(base + shifted);
+      hasilDiv.textContent = "";
+      langkahDiv.innerHTML = "";
 
-  return {
-    ch: result,
-    info: `${ch} → ${index} ${encrypt ? '+' : '-'} ${Math.abs(key)} = ${shifted} → ${result}`
-  };
-}
+      let hasil = "";
 
-function processCaesar(encrypt = true) {
-  const text = document.getElementById("plaintext").value;
-  const key = parseInt(document.getElementById("key").value) || 0;
-  const results = [];
-  const visuals = [];
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
 
-  for (let ch of text) {
-    const { ch: outCh, info } = caesarShift(ch, key, encrypt);
-    results.push(outCh);
-    visuals.push(info);
-  }
+        if (!isLetter(char)) {
+          hasil += char;
+          langkahDiv.innerHTML += `<div class="step-line">${char} (non-huruf) → ${char}</div>`;
+          continue;
+        }
 
-  document.getElementById("ciphertext").textContent = results.join("");
-  document.getElementById("visualization").textContent = visuals.join("\n");
-}
+        const isUpper = char === char.toUpperCase();
+        const base = isUpper ? 65 : 97;
+        const index = char.charCodeAt(0) - base;
+        let shifted = encrypt
+          ? (index + shift) % 26
+          : (index - shift + 26) % 26;
+        const newChar = String.fromCharCode(base + shifted);
+        const stepText = `${char} → ${index}; ${encrypt ? "E" : "D"}(x) = (${index} ${encrypt ? "+" : "-"} ${shift}) mod 26 = ${shifted} → ${newChar}`;
 
-function encryptCaesar() {
-  processCaesar(true);
-}
+        hasil += newChar;
+        langkahDiv.innerHTML += `<div class="step-line">${stepText}</div>`;
+      }
 
-function decryptCaesar() {
-  processCaesar(false);
-}
+      hasilDiv.textContent = hasil;
+      document.getElementById("langkah-container").style.display = "none";
+      document.getElementById("toggleButton").textContent = "🔍 Tampilkan Visualisasi";
+    }
 
-function toggleVisualization() {
-  const visual = document.getElementById("visualSection");
-  const toggleBtn = document.getElementById("toggleButton");
-  const isHidden = getComputedStyle(visual).display === "none";
+    function toggleLangkah() {
+      const container = document.getElementById("langkah-container");
+      const toggleBtn = document.getElementById("toggleButton");
 
-  visual.style.display = isHidden ? "block" : "none";
-  toggleBtn.textContent = isHidden ? "❌ Sembunyikan Visualisasi" : "🔍 Tampilkan Visualisasi";
-}
-</script>
-
+      const isHidden = container.style.display === "none";
+      container.style.display = isHidden ? "block" : "none";
+      toggleBtn.textContent = isHidden ? "❌ Sembunyikan Visualisasi" : "🔍 Tampilkan Visualisasi";
+    }
+  </script>
 </body>
 </html>
